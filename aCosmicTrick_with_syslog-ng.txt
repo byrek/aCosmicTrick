@@ -1,0 +1,48 @@
+When You run own server, the records as below are a daily bread. Somebody keeps testing passwords until get a match.
+
+Jul 27 16:36:39 viper postfix/smtpd[65539]: warning: unknown[178.215.236.70]: SASL LOGIN authentication failed: (reason unavailable), sasl_username=peter
+Jul 27 16:54:58 viper postfix/smtpd[65681]: warning: unknown[178.215.236.70]: SASL LOGIN authentication failed: (reason unavailable), sasl_username=shop
+Jul 27 17:13:13 viper postfix/smtpd[65843]: warning: unknown[178.215.236.70]: SASL LOGIN authentication failed: (reason unavailable), sasl_username=test01
+Jul 27 17:31:31 viper postfix/smtpd[65965]: warning: unknown[178.215.236.70]: SASL LOGIN authentication failed: (reason unavailable), sasl_username=web
+Jul 27 17:49:47 viper postfix/smtpd[66116]: warning: unknown[178.215.236.70]: SASL LOGIN authentication failed: (reason unavailable), sasl_username=alex
+Jul 27 18:08:26 viper postfix/smtpd[66208]: warning: unknown[178.215.236.70]: SASL LOGIN authentication failed: (reason unavailable), sasl_username=director
+Jul 27 18:27:04 viper postfix/smtpd[66379]: warning: unknown[178.215.236.70]: SASL LOGIN authentication failed: (reason unavailable), sasl_username=general
+Jul 27 18:45:46 viper postfix/smtpd[66537]: warning: unknown[178.215.236.70]: SASL LOGIN authentication failed: (reason unavailable), sasl_username=hello
+Jul 27 19:04:37 viper postfix/smtpd[66611]: warning: unknown[178.215.236.70]: SASL LOGIN authentication failed: (reason unavailable), sasl_username=ingrid
+Jul 27 19:23:21 viper postfix/smtpd[66755]: warning: unknown[178.215.236.70]: SASL LOGIN authentication failed: (reason unavailable), sasl_username=patrick
+Jul 27 19:41:46 viper postfix/smtpd[66919]: warning: unknown[178.215.236.70]: SASL LOGIN authentication failed: (reason unavailable), sasl_username=printer
+Jul 27 20:00:17 viper postfix/smtpd[66992]: warning: unknown[178.215.236.70]: SASL LOGIN authentication failed: (reason unavailable), sasl_username=purchasing
+Jul 27 20:18:52 viper postfix/smtpd[67151]: warning: unknown[178.215.236.70]: SASL LOGIN authentication failed: (reason unavailable), sasl_username=report
+Jul 27 20:37:32 viper postfix/smtpd[67238]: warning: unknown[178.215.236.70]: SASL LOGIN authentication failed: (reason unavailable), sasl_username=tech
+Jul 27 20:56:17 viper postfix/smtpd[67399]: warning: unknown[178.215.236.70]: SASL LOGIN authentication failed: (reason unavailable), sasl_username=ticket
+Jul 27 21:15:07 viper postfix/smtpd[67571]: warning: unknown[178.215.236.70]: SASL LOGIN authentication failed: (reason unavailable), sasl_username=account
+Jul 27 21:34:09 viper postfix/smtpd[67764]: warning: unknown[178.215.236.70]: SASL LOGIN authentication failed: (reason unavailable), sasl_username=compras
+
+Now, let me show You how to handle those f***s.
+First, we create our own flow for these records in a file at /etc/syslog-ng/conf.d/ids.conf
+
+destination d_sploity_log { file("/var/log/sploity.log"); };
+destination d_sploity_program	{ program("/usr/local/sbin/sploity.sh"); };
+filter f_sploity { facility(mail) and message("SASL LOGIN authentication failed"); };
+log { source(s_src); filter(f_sploity); destination(d_sploity_log); destination (d_sploity_program);};
+
+The above code will test of the syslog record contains "SASL LOGIN authentication failed", and if so, it will:
+a) create output for sploits in a separate /var/log/sploit.log file
+b) will run /usr/local/sbin/sploity.sh script
+
+What's in /usr/local/sbin/sploity.sh script?
+#!/bin/sh
+while read -r line 
+do
+echo "$line"|cut -d " " -f7 |sed 's/.*\[\([^]]*\)].*/\1/'|xargs ipset add sploity
+done
+
+with this script we cut the IP of an attacker, then we add it to an ipset table named "sploity". And how do we use rhat table? This way:
+iptables -A INPUT -m set --match-set sploity src -j DROP
+
+
+You can easily adapt these scripts to do anything You like in an automated manner. Enjoy!
+Brgds
+Hax0r Zmr0cku
+
+
