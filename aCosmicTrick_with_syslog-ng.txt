@@ -18,7 +18,7 @@ Jul 27 20:56:17 viper postfix/smtpd[67399]: warning: unknown[178.215.236.70]: SA
 Jul 27 21:15:07 viper postfix/smtpd[67571]: warning: unknown[178.215.236.70]: SASL LOGIN authentication failed: (reason unavailable), sasl_username=account
 Jul 27 21:34:09 viper postfix/smtpd[67764]: warning: unknown[178.215.236.70]: SASL LOGIN authentication failed: (reason unavailable), sasl_username=compras
 
-Now, let me show You how to handle those f***s.
+Now, let me show You how to handle those f***s in a same, hardcore manner.
 First, we create our own flow for these records in a file at /etc/syslog-ng/conf.d/ids.conf
 
 destination d_sploity_log { file("/var/log/sploity.log"); };
