@@ -34,8 +34,11 @@ What's in /usr/local/sbin/sploity.sh script?
 #!/bin/sh
 while read -r line 
 do
-echo "$line"|tr -s " "|cut -d " " -f7 |sed 's/.*\[\([^]]*\)].*/\1/'|xargs ipset add sploity
+        ip=$(echo "$line"|tr -s " "|cut -d " " -f7 |sed 's/.*\[\([^]]*\)].*/\1/')
+        ipset add sploity $ip
+        logger $(echo "Banned for bruteforcing email: $ip")
 done
+
 
 with this script we cut the IP of an attacker, then we add it to an ipset table named "sploity". And how do we use rhat table? This way:
 iptables -A INPUT -m set --match-set sploity src -j DROP
